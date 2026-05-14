@@ -1,0 +1,59 @@
+import Global from '../../_global.mdx';
+
+# pp solution app add
+
+Adds an existing Power Apps canvas app to a Power Platform solution
+
+## Usage
+
+```sh
+m365 pp solution app add [options]
+```
+
+## Options
+
+```md definition-list
+`-e, --environmentName <environmentName>`
+: The name of the environment.
+
+`--solutionId [solutionId]`
+: The ID of the solution. Specify either `solutionId` or `solutionName` but not both.
+
+`--solutionName [solutionName]`
+: The display name of the solution. Specify either `solutionId` or `solutionName` but not both.
+
+`--appId [appId]`
+: The ID of the canvas app. Specify either `appId` or `appName` but not both.
+
+`--appName [appName]`
+: The display name of the canvas app. Specify either `appId` or `appName` but not both.
+
+`--asAdmin`
+: Run the command as admin for environments you do not have explicitly assigned permissions to.
+```
+
+<Global />
+
+## Examples
+
+Adds a canvas app to a solution by specifying their IDs.
+
+```sh
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionId "00000001-0000-0000-0001-00000000009b" --appId "394378d7-c92d-4633-a7eb-0900179ee587"
+```
+
+Adds a canvas app to a solution by specifying their display names.
+
+```sh
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Canvas App"
+```
+
+Adds a canvas app to a solution as admin.
+
+```sh
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Canvas App" --asAdmin
+```
+
+## Response
+
+The command won't return a response on success.

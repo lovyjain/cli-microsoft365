@@ -1989,6 +1989,16 @@ const sidebars: SidebarsConfig = {
           solution: [
             {
               type: 'doc',
+              label: 'solution app add',
+              id: 'cmd/pp/solution/solution-app-add'
+            },
+            {
+              type: 'doc',
+              label: 'solution flow add',
+              id: 'cmd/pp/solution/solution-flow-add'
+            },
+            {
+              type: 'doc',
               label: 'solution get',
               id: 'cmd/pp/solution/solution-get'
             },

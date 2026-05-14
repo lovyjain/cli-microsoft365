@@ -18,6 +18,8 @@ export default {
   GATEWAY_LIST: `${prefix} gateway list`,
   MANAGEMENTAPP_ADD: `${prefix} managementapp add`,
   MANAGEMENTAPP_LIST: `${prefix} managementapp list`,
+  SOLUTION_APP_ADD: `${prefix} solution app add`,
+  SOLUTION_FLOW_ADD: `${prefix} solution flow add`,
   SOLUTION_GET: `${prefix} solution get`,
   SOLUTION_LIST: `${prefix} solution list`,
   SOLUTION_PUBLISH: `${prefix} solution publish`,

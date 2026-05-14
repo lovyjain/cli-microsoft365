@@ -1,0 +1,59 @@
+import Global from '../../_global.mdx';
+
+# pp solution flow add
+
+Adds an existing Power Automate cloud flow to a Power Platform solution
+
+## Usage
+
+```sh
+m365 pp solution flow add [options]
+```
+
+## Options
+
+```md definition-list
+`-e, --environmentName <environmentName>`
+: The name of the environment.
+
+`--solutionId [solutionId]`
+: The ID of the solution. Specify either `solutionId` or `solutionName` but not both.
+
+`--solutionName [solutionName]`
+: The display name of the solution. Specify either `solutionId` or `solutionName` but not both.
+
+`--flowId [flowId]`
+: The ID of the cloud flow. Specify either `flowId` or `flowName` but not both.
+
+`--flowName [flowName]`
+: The display name of the cloud flow. Specify either `flowId` or `flowName` but not both.
+
+`--asAdmin`
+: Run the command as admin for environments you do not have explicitly assigned permissions to.
+```
+
+<Global />
+
+## Examples
+
+Adds a cloud flow to a solution by specifying their IDs.
+
+```sh
+m365 pp solution flow add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionId "00000001-0000-0000-0001-00000000009b" --flowId "fc58e85b-768d-4e16-88af-7f96496a39be"
+```
+
+Adds a cloud flow to a solution by specifying their display names.
+
+```sh
+m365 pp solution flow add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --flowName "My Approval Flow"
+```
+
+Adds a cloud flow to a solution as admin.
+
+```sh
+m365 pp solution flow add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --flowName "My Approval Flow" --asAdmin
+```
+
+## Response
+
+The command won't return a response on success.
