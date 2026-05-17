@@ -25,13 +25,20 @@ describe(commands.SOLUTION_APP_ADD, () => {
   const validSolutionName = 'MySolution';
   const validAppId = '394378d7-c92d-4633-a7eb-0900179ee587';
   const validAppName = 'My Canvas App';
+  const validModelDrivenAppId = '11111111-2222-3333-4444-555555555555';
+  const validModelDrivenAppName = 'My Model App';
   const dynamicsApiUrl = 'https://contoso-dev.api.crm4.dynamics.com';
   const makeSolutionAwareUrl = `https://api.powerapps.com/providers/Microsoft.PowerApps/environments/${validEnvironment}/apps/${validAppId}/makeSolutionAware?api-version=2021-02-01`;
+  const addSolutionComponentUrl = `${dynamicsApiUrl}/api/data/v9.2/AddSolutionComponent`;
 
   const solutionResponse = {
     solutionid: validSolutionId,
     uniquename: validSolutionName,
     friendlyname: validSolutionName
+  };
+
+  const solutionUniquenameResponse = {
+    uniquename: validSolutionName
   };
 
   const appsListResponse = [
@@ -51,7 +58,124 @@ describe(commands.SOLUTION_APP_ADD, () => {
       properties: { displayName: validAppName }
     }
   ];
+
+  const modelDrivenAppsResponse = {
+    value: [
+      { appmoduleid: validModelDrivenAppId, name: validModelDrivenAppName }
+    ]
+  };
+
+  const multipleModelDrivenAppsResponse = {
+    value: [
+      { appmoduleid: validModelDrivenAppId, name: validModelDrivenAppName },
+      { appmoduleid: '22222222-3333-4444-5555-666666666666', name: validModelDrivenAppName }
+    ]
+  };
   //#endregion
+
+  it('adds a model-driven app to a solution using IDs and sends correct payload', async () => {
+    sinon.stub(powerPlatform, 'getDynamicsInstanceApiUrl').resolves(dynamicsApiUrl);
+    sinon.stub(request, 'get').resolves(solutionUniquenameResponse);
+
+    let postBody: any;
+    sinon.stub(request, 'post').callsFake(async (opts) => {
+      if (opts.url === addSolutionComponentUrl) {
+        postBody = opts.data;
+        return;
+      }
+      throw `Invalid POST request: ${opts.url}`;
+    });
+
+    await assert.doesNotReject(command.action(logger, {
+      options: {
+        environmentName: validEnvironment,
+        solutionId: validSolutionId,
+        appId: validModelDrivenAppId,
+        appType: 'model-driven'
+      }
+    }));
+
+    assert.deepStrictEqual(postBody, {
+      ComponentId: validModelDrivenAppId,
+      ComponentType: 80,
+      SolutionUniqueName: validSolutionName,
+      AddRequiredComponents: false
+    });
+  });
+
+  it('adds a model-driven app to a solution by resolving names via Dataverse', async () => {
+    sinon.stub(powerPlatform, 'getDynamicsInstanceApiUrl').resolves(dynamicsApiUrl);
+    sinon.stub(odata, 'getAllItems').resolves(modelDrivenAppsResponse.value);
+    sinon.stub(request, 'post').callsFake(async (opts) => {
+      if (opts.url === addSolutionComponentUrl) {
+        return;
+      }
+      throw `Invalid POST request: ${opts.url}`;
+    });
+
+    await assert.doesNotReject(command.action(logger, {
+      options: {
+        environmentName: validEnvironment,
+        solutionName: validSolutionName,
+        appName: validModelDrivenAppName,
+        appType: 'model-driven'
+      }
+    }));
+  });
+
+  it('prompts when multiple model-driven apps share the same name', async () => {
+    sinon.stub(powerPlatform, 'getDynamicsInstanceApiUrl').resolves(dynamicsApiUrl);
+    sinon.stub(odata, 'getAllItems').resolves(multipleModelDrivenAppsResponse.value);
+    sinon.stub(cli, 'handleMultipleResultsFound').resolves({ appmoduleid: validModelDrivenAppId, name: validModelDrivenAppName });
+    sinon.stub(request, 'post').callsFake(async (opts) => {
+      if (opts.url === addSolutionComponentUrl) {
+        return;
+      }
+      throw `Invalid POST request: ${opts.url}`;
+    });
+
+    await assert.doesNotReject(command.action(logger, {
+      options:
+      {
+        environmentName: validEnvironment,
+        solutionName: validSolutionName,
+        appName: validModelDrivenAppName,
+        appType: 'model-driven'
+      }
+    }));
+  });
+
+  it('throws an error when the specified model-driven app name does not exist', async () => {
+    sinon.stub(powerPlatform, 'getDynamicsInstanceApiUrl').resolves(dynamicsApiUrl);
+    sinon.stub(odata, 'getAllItems').resolves([]);
+
+    await assert.rejects(
+      command.action(logger, {
+        options:
+        {
+          environmentName: validEnvironment,
+          solutionName: validSolutionName,
+          appName: 'NonExistentModelApp',
+          appType: 'model-driven'
+        }
+      }),
+      new CommandError(`The specified model-driven app 'NonExistentModelApp' does not exist.`)
+    );
+  });
+
+  it('throws an error for unsupported appType', async () => {
+    await assert.rejects(
+      command.action(logger, {
+        options: {
+          environmentName: validEnvironment,
+          solutionName: validSolutionName,
+          appName: validAppName,
+          appType: 'unsupported-type'
+        }
+      }),
+      new CommandError(`Unsupported appType 'unsupported-type'. Supported values: canvas, model-driven.`)
+    );
+  });
 
   let log: string[];
   let logger: Logger;
@@ -69,7 +193,8 @@ describe(commands.SOLUTION_APP_ADD, () => {
 
   beforeEach(() => {
     log = [];
-    logger = {
+    logger =
+    {
       log: async (msg: string) => { log.push(msg); },
       logRaw: async (msg: string) => { log.push(msg); },
       logToStderr: async (msg: string) => { log.push(msg); }
@@ -79,6 +204,7 @@ describe(commands.SOLUTION_APP_ADD, () => {
 
   afterEach(() => {
     sinonUtil.restore([
+      request.get,
       request.post,
       odata.getAllItems,
       powerPlatform.getDynamicsInstanceApiUrl,
@@ -94,7 +220,8 @@ describe(commands.SOLUTION_APP_ADD, () => {
 
   it('has correct name', () => {
     assert.strictEqual(command.name, commands.SOLUTION_APP_ADD);
-  });
+  }
+  );
 
   it('has a description', () => {
     assert.notStrictEqual(command.description, null);
@@ -278,7 +405,7 @@ describe(commands.SOLUTION_APP_ADD, () => {
           appName: 'NonExistentApp'
         }
       }),
-      new CommandError(`The specified app 'NonExistentApp' does not exist.`)
+      new CommandError(`The specified canvas app 'NonExistentApp' does not exist.`)
     );
   });
 
@@ -314,6 +441,37 @@ describe(commands.SOLUTION_APP_ADD, () => {
     });
 
     assert(loggerLogToStderrSpy.called);
+  });
+
+  it('falls back to AddSolutionComponent when canvas app is already solution-aware', async () => {
+    sinon.stub(powerPlatform, 'getDynamicsInstanceApiUrl').resolves(dynamicsApiUrl);
+
+    let fallbackBody: any;
+    sinon.stub(request, 'post').callsFake(async (opts) => {
+      if (opts.url === makeSolutionAwareUrl) {
+        throw { error: { error: { message: 'The app cannot be added to the specified solution because it is already solution aware.' } } };
+      }
+      if (opts.url === addSolutionComponentUrl) {
+        fallbackBody = opts.data;
+        return;
+      }
+      throw `Invalid POST request: ${opts.url}`;
+    });
+
+    await assert.doesNotReject(command.action(logger, {
+      options: {
+        environmentName: validEnvironment,
+        solutionName: validSolutionName,
+        appId: validAppId
+      }
+    }));
+
+    assert.deepStrictEqual(fallbackBody, {
+      ComponentId: validAppId,
+      ComponentType: 300,
+      SolutionUniqueName: validSolutionName,
+      AddRequiredComponents: false
+    });
   });
 
   it('correctly handles API error', async () => {

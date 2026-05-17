@@ -2,7 +2,7 @@ import Global from '../../_global.mdx';
 
 # pp solution app add
 
-Adds an existing Power Apps canvas app to a Power Platform solution
+Adds an existing Power Apps app (canvas or model-driven) to a Power Platform solution
 
 ## Usage
 
@@ -20,17 +20,17 @@ m365 pp solution app add [options]
 : The ID of the solution. Specify either `solutionId` or `solutionName` but not both.
 
 `--solutionName [solutionName]`
-: The display name of the solution. Specify either `solutionId` or `solutionName` but not both.
+: The unique name of the solution. Specify either `solutionId` or `solutionName` but not both.
 
 `--appId [appId]`
-: The ID of the canvas app. Specify either `appId` or `appName` but not both.
+: The ID of the app. Specify either `appId` or `appName` but not both.
 
 `--appName [appName]`
-: The display name of the canvas app. Specify either `appId` or `appName` but not both.
+: The display name of the app. Specify either `appId` or `appName` but not both.
 
-`--asAdmin`
-: Run the command as admin for environments you do not have explicitly assigned permissions to.
-```
+`--appType [appType]`
+: The type of the app. Allowed values: `canvas`, `model-driven`. Defaults to `canvas`.
+
 
 <Global />
 
@@ -39,19 +39,25 @@ m365 pp solution app add [options]
 Adds a canvas app to a solution by specifying their IDs.
 
 ```sh
-m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionId "00000001-0000-0000-0001-00000000009b" --appId "394378d7-c92d-4633-a7eb-0900179ee587"
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionId "00000001-0000-0000-0001-00000000009b" --appId "394378d7-c92d-4633-a7eb-0900179ee587" --appType canvas
 ```
 
 Adds a canvas app to a solution by specifying their display names.
 
 ```sh
-m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Canvas App"
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Canvas App" --appType canvas
 ```
 
-Adds a canvas app to a solution as admin.
+Adds a model-driven app to a solution by specifying their IDs.
 
 ```sh
-m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Canvas App" --asAdmin
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionId "00000001-0000-0000-0001-00000000009b" --appId "fbd9b245-6750-f111-a825-6045bdea66a1" --appType model-driven
+```
+
+Adds a model-driven app to a solution by specifying their names.
+
+```sh
+m365 pp solution app add --environmentName "Default-d87a7535-dd31-4437-bfe1-95340acd55c5" --solutionName "MySolution" --appName "My Model-Driven App" --appType model-driven
 ```
 
 ## Response
